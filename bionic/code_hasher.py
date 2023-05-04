@@ -177,10 +177,7 @@ class CodeHasher:
             )
 
         elif isinstance(obj, (list, tuple)):
-            if isinstance(obj, list):
-                type_prefix = TypePrefix.LIST
-            else:
-                type_prefix = TypePrefix.TUPLE
+            type_prefix = TypePrefix.LIST if isinstance(obj, list) else TypePrefix.TUPLE
             obj_len_bytes = str(len(obj)).encode()
             add_to_hash(
                 hash_accumulator,
@@ -195,10 +192,7 @@ class CodeHasher:
                 )
 
         elif isinstance(obj, (set, frozenset)):
-            if isinstance(obj, set):
-                type_prefix = TypePrefix.SET
-            else:
-                type_prefix = TypePrefix.FROZENSET
+            type_prefix = TypePrefix.SET if isinstance(obj, set) else TypePrefix.FROZENSET
             obj_len_bytes = str(len(obj)).encode()
             add_to_hash(
                 hash_accumulator,
@@ -257,8 +251,6 @@ class CodeHasher:
                 obj_bytes=obj.val.encode(),
             )
 
-        # This detects only Enum values. The actual Enum class is still
-        # detected and handled by inspect.isclass.
         elif isinstance(obj, Enum):
             add_to_hash(hash_accumulator, type_prefix=TypePrefix.ENUM)
             add_to_hash(
@@ -283,7 +275,7 @@ class CodeHasher:
 
         elif inspect.isbuiltin(obj):
             add_to_hash(hash_accumulator, type_prefix=TypePrefix.BUILTIN)
-            builtin_name = "%s.%s" % (obj.__module__, obj.__name__)
+            builtin_name = f"{obj.__module__}.{obj.__name__}"
             add_to_hash(
                 hash_accumulator,
                 type_prefix=TypePrefix.HASH,
@@ -316,7 +308,7 @@ class CodeHasher:
                 # submodules either because that can have unnecessary
                 # side effects.
                 add_to_hash(hash_accumulator, type_prefix=TypePrefix.INTERNAL_ROUTINE)
-                routine_name = "%s.%s" % (obj.__module__, obj.__name__)
+                routine_name = f"{obj.__module__}.{obj.__name__}"
                 add_to_hash(
                     hash_accumulator,
                     type_prefix=TypePrefix.HASH,
@@ -341,13 +333,6 @@ class CodeHasher:
         elif obj is attr.NOTHING:
             add_to_hash(hash_accumulator, type_prefix=TypePrefix.ATTR_NOTHING)
 
-        # This hashes the instances of `attr.Attribute` class. The actual class
-        # is hashed under the `inspect.isclass` block.
-        # We have special handling for `attr.Attribute` objects because `attr`
-        # classes contains these objects as one of the field and we should detect
-        # any changes to the field in order to detect changes to the class.
-        # Without this special handling, the object will be treated as a complex
-        # variable and Bionic will warn for it.
         elif isinstance(obj, attr.Attribute):
             add_to_hash(hash_accumulator, type_prefix=TypePrefix.ATTR_ATTRIBUTE)
             self._update_hash_for_members_of_obj(hash_accumulator, obj)
@@ -355,7 +340,7 @@ class CodeHasher:
         elif inspect.isclass(obj):
             if is_internal_class(obj):
                 add_to_hash(hash_accumulator, type_prefix=TypePrefix.INTERNAL_CLASS)
-                class_name = "%s.%s" % (obj.__module__, obj.__name__)
+                class_name = f"{obj.__module__}.{obj.__name__}"
                 add_to_hash(
                     hash_accumulator,
                     type_prefix=TypePrefix.HASH,

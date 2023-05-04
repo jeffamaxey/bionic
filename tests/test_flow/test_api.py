@@ -381,7 +381,7 @@ def test_get_collections(preset_flow):
         assert ys == [1]
 
         zs = flow.get("z", collection)
-        assert zs == [2, 3] or zs == [3, 2]
+        assert zs in [[2, 3], [3, 2]]
 
         ps = flow.get("p", collection)
         assert ps == [4]

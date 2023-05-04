@@ -186,15 +186,11 @@ def find_best_message_regex_pairing(messages, regexes):
         top_nodes=messages,
     )
 
-    # The matching algorithm returns every pairing in both directions; we only want to
-    # keep the matches going from message to regex (not vice versa).
-    matched_regexes_by_message = {
+    return {
         left_node: right_node.pattern
         for left_node, right_node in nodes_by_matched_node.items()
         if left_node in messages
     }
-
-    return matched_regexes_by_message
 
 
 def assert_re_matches(regex, string, flags=0):
@@ -301,7 +297,6 @@ def longest_regex_prefix_match(regex, string, flags=0):
                     else:
                         min_fail_ix = lo_ix
                     break
-                    found_valid_pattern = True
                 except re.error:
                     lo_ix -= 1
 

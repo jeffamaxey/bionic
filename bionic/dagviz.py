@@ -78,11 +78,7 @@ def dot_from_graph(graph, vertical=False, curvy_lines=False, name=None):
     be visualized using GraphViz.
     """
 
-    if name is None:
-        graph_name = ""
-    else:
-        graph_name = name
-
+    graph_name = "" if name is None else name
     dot = pydot.Dot(
         graph_name=graph_name,
         graph_type="digraph",
@@ -102,7 +98,7 @@ def dot_from_graph(graph, vertical=False, curvy_lines=False, name=None):
         # with no entity names is the empty tuple `()`, and specifying an empty tuple
         # as an output descriptor ends up doing nothing. Still, we'll try to handle this
         # gracefully in case things change.)
-        if len(entity_names) == 0:
+        if not entity_names:
             entity_names = [""]
 
         # If this node has multiple entity names, we want to make sure all those names
@@ -153,13 +149,11 @@ def dot_from_graph(graph, vertical=False, curvy_lines=False, name=None):
                 fillcolor=color,
                 shape="box",
             )
-            if doc:
-                tooltip = (
-                    rewrap_docstring(doc)
-                    + f"\n\nPersisted: {graph.nodes[node]['should_persist']}"
-                )
-            else:
-                tooltip = f"Persisted: {graph.nodes[node]['should_persist']}"
+            tooltip = (
+                f"{rewrap_docstring(doc)}\n\nPersisted: {graph.nodes[node]['should_persist']}"
+                if doc
+                else f"Persisted: {graph.nodes[node]['should_persist']}"
+            )
             dot_node.set("tooltip", tooltip)
             subdot.add_node(dot_node)
 

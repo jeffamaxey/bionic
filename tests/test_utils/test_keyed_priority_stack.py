@@ -168,11 +168,10 @@ class SimpleKeyedPriorityStack:
         if key is not None:
             ix = self._quad_ix_for_key(key)
             _, _, value, _ = self._sorted_quads.pop(ix)
-            return value
-
         else:
             _, _, value, _ = self._sorted_quads.pop()
-            return value
+
+        return value
 
     def __len__(self):
         return len(self._sorted_quads)
@@ -186,6 +185,4 @@ class SimpleKeyedPriorityStack:
         return quad_ix
 
     def _get_random_key(self, random):
-        if len(self) == 0:
-            return None
-        return random.choice(self._sorted_quads)[3]
+        return None if len(self) == 0 else random.choice(self._sorted_quads)[3]

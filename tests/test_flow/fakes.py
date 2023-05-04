@@ -58,7 +58,7 @@ class FakeGcsFs:
             f.write(self.cat_file(url))
 
     def _search_files(self, url):
-        return ["gs://" + glob_url for glob_url in self.glob(url + "**/*")]
+        return [f"gs://{glob_url}" for glob_url in self.glob(f"{url}**/*")]
 
     def glob(self, url):
         # We only use glob in Bionic for urls with **.
@@ -74,7 +74,7 @@ class FakeGcsFs:
 
     def isdir(self, url):
         if not url.endswith("/"):
-            url = url + "/"
+            url = f"{url}/"
         return any(key for key in self._files_by_url.keys() if key.startswith(url))
 
     @contextmanager

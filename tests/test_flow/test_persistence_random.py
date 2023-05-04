@@ -102,7 +102,7 @@ class ModelFlowHarness:
         )
         dep_entities = list(map(self._entities_by_name.get, dep_entity_names))
 
-        should_persists = set(entity.should_persist for entity in out_entities)
+        should_persists = {entity.should_persist for entity in out_entities}
         (should_persist,) = should_persists
 
         binding = ModelBinding(
@@ -308,20 +308,30 @@ class ModelBinding:
             self.annotated_func_version = self.func_version
             annotation_changed = True
 
-        if versioning_mode == "manual":
-            if annotation_changed:
-                self.clear_persisted_values()
+        if (
+            versioning_mode == "manual"
+            and annotation_changed
+            or versioning_mode != "manual"
+            and versioning_mode == "assist"
+            and annotation_changed
+            or versioning_mode != "manual"
+            and versioning_mode != "assist"
+            and versioning_mode == "auto"
+            and (func_changed or annotation_changed)
+        ):
+            self.clear_persisted_values()
 
+        elif (
+            versioning_mode == "manual"
+            or versioning_mode == "assist"
+            and not func_changed
+            or versioning_mode != "assist"
+            and versioning_mode == "auto"
+        ):
+            pass
         elif versioning_mode == "assist":
-            if annotation_changed:
-                self.clear_persisted_values()
-            elif func_changed:
-                stale_ancestor = self.out_entities[0].name
-                self.mark_persisted_values_stale(stale_ancestor)
-
-        elif versioning_mode == "auto":
-            if func_changed or annotation_changed:
-                self.clear_persisted_values()
+            stale_ancestor = self.out_entities[0].name
+            self.mark_persisted_values_stale(stale_ancestor)
 
         else:
             assert False
@@ -652,12 +662,8 @@ class RandomFlowTester:
         include_three_entities = self._random_bool(
             p_true=self._config.p_three_out_given_multi
         )
-        if not include_three_entities:
-            template = "X, X"
-
-        else:
-            # We'll randomly choose one of the following three-entity descriptors:
-            template = self._rng.choice(
+        template = (
+            self._rng.choice(
                 [
                     "X, X, X",
                     "(X, X), X",
@@ -666,7 +672,9 @@ class RandomFlowTester:
                     "(X, X, X),",
                 ],
             )
-
+            if include_three_entities
+            else "X, X"
+        )
         return re.sub("X", lambda x: new_entity_name(), template)
 
 
@@ -677,12 +685,6 @@ def harness(builder, make_list, parallel_execution_enabled):
         make_list,
         parallel_execution_enabled=parallel_execution_enabled,
     )
-    # If parallel execution is enabled, some non-persistable entities may get
-    # computed multiple times in different processes, which our model doesn't
-    # account for.
-    if parallel_execution_enabled:
-        harness.disable_exact_call_counting()
-    return harness
 
 
 # This test is mostly here as an example of how to use the harness in a deterministic

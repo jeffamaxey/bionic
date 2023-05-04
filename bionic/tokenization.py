@@ -26,11 +26,11 @@ def clean_str(string):
     # Some filesystems treat files differently if they start with a period, so
     # let's avoid that.
     if cleaned.startswith("."):
-        cleaned = "_" + cleaned
+        cleaned = f"_{cleaned}"
     if len(cleaned) > MAX_CLEAN_STR_LEN:
         head_len = (MAX_CLEAN_STR_LEN // 2) - 1
         tail_len = MAX_CLEAN_STR_LEN - (head_len + 3)
-        cleaned = cleaned[:head_len] + "..." + cleaned[-tail_len:]
+        cleaned = f"{cleaned[:head_len]}...{cleaned[-tail_len:]}"
     return cleaned
 
 

@@ -352,7 +352,7 @@ class DescriptorParser:
 
     def _fail(self, message):
         raise MalformedDescriptorError(
-            f"Unable to parse descriptor {self._descriptor!r}: " + oneline(message)
+            f"Unable to parse descriptor {self._descriptor!r}: {oneline(message)}"
         )
 
 

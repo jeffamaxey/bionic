@@ -91,7 +91,7 @@ def test_copy_file_to_gcs_dir(
     flow, tmp_path, tmp_gcs_url_prefix, override_gcs_for_copy_if_fake_gcp, gcs_fs
 ):
     flow.get("f", mode="FileCopier").copy(destination=tmp_gcs_url_prefix)
-    cloud_url = tmp_gcs_url_prefix + "f.json"
+    cloud_url = f"{tmp_gcs_url_prefix}f.json"
     local_path = tmp_path / "f.json"
     gcs_fs.get_file(cloud_url, local_path)
     assert json.loads(local_path.read_bytes()) == 5
@@ -101,7 +101,7 @@ def test_copy_file_to_gcs_dir(
 def test_copy_file_to_gcs_file(
     flow, tmp_path, tmp_gcs_url_prefix, override_gcs_for_copy_if_fake_gcp, gcs_fs
 ):
-    cloud_url = tmp_gcs_url_prefix + "f.json"
+    cloud_url = f"{tmp_gcs_url_prefix}f.json"
     flow.get("f", mode="FileCopier").copy(destination=cloud_url)
     local_path = tmp_path / "f.json"
     gcs_fs.get_file(cloud_url, local_path)
@@ -128,7 +128,7 @@ def test_copy_dask_to_gcs_dir(
     override_gcs_for_copy_if_fake_gcp,
     gcs_fs,
 ):
-    cloud_url = tmp_gcs_url_prefix + "output"
+    cloud_url = f"{tmp_gcs_url_prefix}output"
     local_path = tmp_path / "output"
 
     dask_flow.get("dask_df", mode="FileCopier").copy(destination=cloud_url)

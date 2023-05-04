@@ -128,7 +128,7 @@ class BaseProvider:
 
     @property
     def entity_names(self):
-        return [name for name in self.attrs.out_dnode.all_entity_names()]
+        return list(self.attrs.out_dnode.all_entity_names())
 
     def __repr__(self):
         return f"{self.__class__.__name__}{self.attrs.out_dnode.to_descriptor()!r}"
@@ -219,11 +219,11 @@ class ValueProvider(BaseProvider):
         return self._has_any_values
 
     def get_code_versioning_policy(self, case_key):
-        if not self.has_any_cases():
-            value_tokens = ""
-        else:
-            value_tokens = " ".join(self._token_tuples_by_case_key[case_key])
-
+        value_tokens = (
+            " ".join(self._token_tuples_by_case_key[case_key])
+            if self.has_any_cases()
+            else ""
+        )
         return CodeVersioningPolicy(
             version=CodeVersion(
                 major=value_tokens,
@@ -624,11 +624,11 @@ class GatherProvider(WrappingProvider):
             # to eliminate every source of non-deterministic ordering, I think
             # it's better to sort our values at the point where we actually
             # need determinism.  (Viz., computing the provenance hash.)
-            unique_gather_dep_keys = set(
+            unique_gather_dep_keys = {
                 dep_task_key
                 for gather_row in gather_table.rows
                 for dep_task_key in gather_row.dep_task_keys
-            )
+            }
             prepended_keys = list(unique_gather_dep_keys)
 
             # Combine the gathering task keys with the keys expected by the
@@ -732,7 +732,7 @@ class PyplotProvider(WrappingProvider):
             "bbox_inches": "tight",
         }
         if savefig_kwargs is not None:
-            self._savefig_kwargs.update(savefig_kwargs)
+            self._savefig_kwargs |= savefig_kwargs
 
         inner_dep_dnodes = wrapped_provider.get_dependency_dnodes()
         if self._pyplot_dnode not in inner_dep_dnodes:
@@ -1088,9 +1088,11 @@ class HashableWrapper:
         return hash(self._token)
 
     def __eq__(self, other):
-        if not isinstance(other, HashableWrapper):
-            return False
-        return self._token == other._token
+        return (
+            self._token == other._token
+            if isinstance(other, HashableWrapper)
+            else False
+        )
 
     def __str__(self):
         return f"W({self._value})"

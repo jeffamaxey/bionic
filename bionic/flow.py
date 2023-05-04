@@ -242,7 +242,7 @@ class FlowConfig(pyrs.PClass):
             raise IncompatibleEntityError(oneline(message))
 
     def add_case(self, case_key, names, values):
-        (provider,) = set(self.get_provider(name) for name in names)
+        (provider,) = {self.get_provider(name) for name in names}
         if not isinstance(provider, ValueProvider):
             raise IncompatibleEntityError(
                 f"Can't add case to function entities {names!r}"
@@ -967,7 +967,7 @@ class FlowBuilder:
                 """
                 warnings.warn(oneline(preamble) + "\n" + oneline(details))
 
-            docs = [orig_docstring for name in names]
+            docs = [orig_docstring for _ in names]
         if len(docs) != len(names):
             message = f"""
             Number of docs must match the number of names;
@@ -1272,8 +1272,7 @@ class Flow:
         elif collection is set or collection == "set":
             return set(values)
         elif collection is pd.Series or collection == "series":
-            key_space = list(result_group.key_space)
-            if len(key_space) > 0:
+            if key_space := list(result_group.key_space):
                 ancestor_values_by_case_key_by_name = defaultdict(dict)
                 ancestor_key_space_by_name = {}
                 for ancestor_name in key_space:
@@ -1563,7 +1562,7 @@ class Flow:
             module = module_registry[source_func.__module__]
             if len(self._get_flows_from_module(module)) > 0:
                 candidate_flow_modules.add(module)
-        if len(candidate_flow_modules) == 0:
+        if not candidate_flow_modules:
             raise Exception(
                 oneline(f"Couldn't find the module that has flow {self_name!r}.")
             )
@@ -1588,8 +1587,8 @@ class Flow:
             else:
                 blessed_candidate_flows.append(flow)
 
-        if len(blessed_candidate_flows) == 0:
-            if len(unblessed_candidate_flows) > 0:
+        if not blessed_candidate_flows:
+            if unblessed_candidate_flows:
                 raise Exception(
                     oneline(
                         f"""
@@ -1621,7 +1620,7 @@ class Flow:
     # --- Private helpers.
 
     @classmethod
-    def _from_config(self, config):
+    def _from_config(cls, config):
         return Flow(_official=True, config=config)
 
     def __init__(self, config, _official=False):
@@ -1841,8 +1840,8 @@ def create_default_flow_config():
     @builder
     @decorators.immediate
     def core__persistent_cache__gcs__fs(
-        core__persistent_cache__gcs__enabled,
-    ):
+            core__persistent_cache__gcs__enabled,
+        ):
         """
         An fsspec filesystem corresponding to GCS, or None.
 
@@ -1850,10 +1849,7 @@ def create_default_flow_config():
         """
 
         gcs_enabled = core__persistent_cache__gcs__enabled
-        if gcs_enabled:
-            return get_gcs_fs_without_warnings()
-        else:
-            return None
+        return get_gcs_fs_without_warnings() if gcs_enabled else None
 
     @builder
     @decorators.immediate
@@ -1896,12 +1892,14 @@ def create_default_flow_config():
     @builder
     @decorators.immediate
     def core__process_executor(
-        core__parallel_execution__enabled,
-        core__parallel_execution__worker_count,
-    ):
-        if not core__parallel_execution__enabled:
-            return None
-        return ProcessExecutor(core__parallel_execution__worker_count)
+            core__parallel_execution__enabled,
+            core__parallel_execution__worker_count,
+        ):
+        return (
+            ProcessExecutor(core__parallel_execution__worker_count)
+            if core__parallel_execution__enabled
+            else None
+        )
 
     builder.assign("core__aip_execution__enabled", False, persist=False)
     builder.assign("core__aip_execution__docker_image_name", None, persist=False)
@@ -1938,33 +1936,33 @@ def create_default_flow_config():
     @builder
     @decorators.immediate
     def core__aip_execution__config(
-        core__aip_execution__enabled,
-        core__aip_execution__gcp_project_id,
-        core__aip_execution__poll_period_seconds,
-        core__flow_name,
-    ):
-        if not core__aip_execution__enabled:
-            return None
-        return AipConfig(
-            uuid=f"{core__flow_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
-            project_id=core__aip_execution__gcp_project_id,
-            poll_period_seconds=core__aip_execution__poll_period_seconds,
+            core__aip_execution__enabled,
+            core__aip_execution__gcp_project_id,
+            core__aip_execution__poll_period_seconds,
+            core__flow_name,
+        ):
+        return (
+            AipConfig(
+                uuid=f"{core__flow_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                project_id=core__aip_execution__gcp_project_id,
+                poll_period_seconds=core__aip_execution__poll_period_seconds,
+            )
+            if core__aip_execution__enabled
+            else None
         )
 
     @builder
     @decorators.immediate
     def core__aip_client(
-        core__aip_execution__enabled,
-    ):
+            core__aip_execution__enabled,
+        ):
         """
         An AIP client if AIP is enabled, or None.
 
         This entity exists so that the AIP client can be replaced for testing.
         """
 
-        if not core__aip_execution__enabled:
-            return None
-        return get_aip_client()
+        return get_aip_client() if core__aip_execution__enabled else None
 
     @builder
     @decorators.immediate

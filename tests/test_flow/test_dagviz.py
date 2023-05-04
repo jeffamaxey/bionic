@@ -84,7 +84,7 @@ def test_dot_names_and_colors(flow_dot):
 
     all_group_colors = set()
     for name_group in same_color_name_groups:
-        group_colors = set(nodes[name].get_fillcolor() for name in name_group)
+        group_colors = {nodes[name].get_fillcolor() for name in name_group}
         assert len(group_colors) == 1
         (group_color,) = group_colors
         assert group_color not in all_group_colors
@@ -128,9 +128,7 @@ def test_save_flowimage_file_path_svg(tmp_path, flow_image):
         ET.fromstring(output_text)
     except ET.ParseError:
         pytest.fail(
-            "output from saving SVG to file object not well formed XML {}".format(
-                output_text
-            )
+            f"output from saving SVG to file object not well formed XML {output_text}"
         )
 
 
@@ -151,7 +149,5 @@ def test_save_flowimage_file_object_svg(tmp_path, flow_image):
         ET.fromstring(output_text)
     except ET.ParseError:
         pytest.fail(
-            "output from saving SVG to file object not well formed XML {}".format(
-                output_text
-            )
+            f"output from saving SVG to file object not well formed XML {output_text}"
         )

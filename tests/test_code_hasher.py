@@ -400,10 +400,10 @@ def test_code_hasher():
 
 
 def test_set_order():
-    s1 = set([1, "A", 2, 3, 3, 3, 3])
-    s2 = {3, 2, 1, 2, 3, "A"}
-    s3 = {"A", 3, 3, 3, 2, 1, "A"}
-    s4 = {"A", 3, 3, 3, 2, 1, "B"}
+    s1 = {1, "A", 2, 3}
+    s2 = {1, 2, 3, "A"}
+    s3 = {3, 2, 1, "A"}
+    s4 = {"A", 3, 2, 1, "B"}
     check_hash_equivalence([[s1, s2, s3], [s4]])
 
 
@@ -586,9 +586,7 @@ def test_changes_in_references():
         return 1
 
     def count(v):
-        if v == 0:
-            return 0
-        return count(v - 1) + f1()
+        return 0 if v == 0 else count(v - 1) + f1()
 
     old_hash = CodeHasher.hash(count)
     assert old_hash == CodeHasher.hash(count)

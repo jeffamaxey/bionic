@@ -48,5 +48,6 @@ def is_internal_file(filename):
     to Python, i.e., it's in the Python installation paths.
     """
     return any(
-        fnmatch(filename, file_dir + "/*") for file_dir in sysconfig_paths().values()
+        fnmatch(filename, f"{file_dir}/*")
+        for file_dir in sysconfig_paths().values()
     )

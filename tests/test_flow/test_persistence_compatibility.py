@@ -10,8 +10,7 @@ def older_serialized_cache_harness(make_counter, tmp_path):
     # shutil.copytree dest should not exist
     tmp_cache_path = tmp_path.joinpath("test_cache")
     shutil.copytree(CACHE_TEST_DIR, tmp_cache_path)
-    harness = Harness(tmp_cache_path, make_counter)
-    return harness
+    return Harness(tmp_cache_path, make_counter)
 
 
 # Tests caching backward compatibility by loading and deserializaing

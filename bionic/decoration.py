@@ -46,13 +46,12 @@ class DecorationAccumulator:
             """
             if raise_if_already_set:
                 raise AttributeValidationError(oneline(message))
-            else:
-                preamble = """
+            preamble = """
                 Applying this type of decorator multiple times is deprecated and will
                 become an error condition in a future release; please remove all but
                 the uppermost uses of this decorator. Details:
                 """
-                warnings.warn(oneline(preamble) + "\n" + oneline(message))
+            warnings.warn(oneline(preamble) + "\n" + oneline(message))
         setattr(self, attr_name, attr_value)
 
 

@@ -132,10 +132,7 @@ class EntityDeriver:
             if dnode.is_entity():
                 return False
 
-            if dnode.is_draft() and not dnode.child.is_entity():
-                return False
-
-            return True
+            return bool(not dnode.is_draft() or dnode.child.is_entity())
 
         self.get_ready()
 
@@ -480,7 +477,8 @@ class EntityDeriver:
 
             should_memoize_for_query = (
                 self._core.should_memoize_for_query_if_uncached
-                and not (should_memoize or should_persist)
+                and not should_memoize
+                and not should_persist
             )
 
             return DescriptorMetadata(
@@ -497,7 +495,7 @@ class EntityDeriver:
             if child_entity_def.doc is None:
                 doc = doc_prefix
             else:
-                doc = doc_prefix + " " + child_entity_def.doc
+                doc = f"{doc_prefix} {child_entity_def.doc}"
             return DescriptorMetadata(
                 protocol=NON_SERIALIZABLE_OBJECT_PROTOCOL,
                 doc=doc,

@@ -203,10 +203,7 @@ class CaseKeySpace(ImmutableSequence):
             raise ValueError("Can't take the intersection of zero spaces")
         names = None
         for space in spaces:
-            if names is None:
-                names = set(spaces)
-            else:
-                names = names.intersection(space)
+            names = set(spaces) if names is None else names.intersection(space)
         return CaseKeySpace(names)
 
     def __repr__(self):
@@ -219,7 +216,7 @@ class CaseKey(ImmutableMapping):
     """
 
     def __init__(self, name_token_pairs):
-        tokens_by_name = {name: token for name, token in name_token_pairs}
+        tokens_by_name = dict(name_token_pairs)
 
         super(CaseKey, self).__init__(tokens_by_name)
         self._name_token_pairs = name_token_pairs
@@ -255,7 +252,7 @@ class CaseKey(ImmutableMapping):
         )
 
     def merge(self, other):
-        tokens_by_name = {name: token for name, token in self._name_token_pairs}
+        tokens_by_name = dict(self._name_token_pairs)
 
         for name, token in other._name_token_pairs:
             if name in tokens_by_name:
@@ -263,7 +260,7 @@ class CaseKey(ImmutableMapping):
             else:
                 tokens_by_name[name] = token
 
-        return CaseKey([(name, token) for name, token in tokens_by_name.items()])
+        return CaseKey(list(tokens_by_name.items()))
 
     def __repr__(self):
         args_str = ", ".join(f"{name}={token}" for name, token in self.items())

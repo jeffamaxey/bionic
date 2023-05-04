@@ -146,7 +146,7 @@ class Task:
             logging.info(f"Future for {self.job_id} has state {state}")
 
         if state is not State.SUCCEEDED:
-            raise AipError(f"{self.job_id}: " + str(error))
+            raise AipError(f"{self.job_id}: {str(error)}")
 
         with gcs_fs.open(self.output_uri, "rb") as f:
             return pickle.load(f)

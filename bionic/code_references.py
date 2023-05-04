@@ -62,28 +62,13 @@ class CodeContext:
 def get_code_context(func) -> CodeContext:
     code = func.__code__
 
-    # Mapping from variable name to the value if we can resolve it.
-    # Otherwise map to the name.
-    cells = {}
-
-    for var in code.co_cellvars:
-        # Streamlit uses the names of the variable instead of the value
-        # for cell variables. I suspect this is so because it is hard
-        # to find the value of a cell variable. It doesn't mean we
-        # don't hash these values for Smart Caching. These cell
-        # variables are also present in ``code.co_consts``` which we
-        # hash separately.
-        cells[var] = var
-
+    cells = {var: var for var in code.co_cellvars}
     if code.co_freevars:
         assert len(code.co_freevars) == len(func.__closure__)
         for freevar, cell in zip(code.co_freevars, func.__closure__):
             cells[freevar] = cell.cell_contents
 
-    varnames = {}
-    if inspect.ismethod(func):
-        varnames = {"self": func.__self__}
-
+    varnames = {"self": func.__self__} if inspect.ismethod(func) else {}
     return CodeContext(
         globals=func.__globals__,
         cells=cells,
@@ -244,7 +229,7 @@ def get_referenced_objects(code, context, suppress_warnings=False):
                 set_tos(None)
             elif op.opname in ["LOAD_METHOD", "LOAD_ATTR"]:
                 if isinstance(tos, ReferenceProxy):
-                    tos.val += "." + op.argval
+                    tos.val += f".{op.argval}"
                 elif inspect.ismodule(tos) and hasattr(tos, op.argval):
                     tos = getattr(tos, op.argval)
                 else:

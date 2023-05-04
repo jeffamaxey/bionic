@@ -75,9 +75,7 @@ def multiprocessing_manager(request):
 
 @pytest.fixture
 def process_manager(parallel_execution_enabled, multiprocessing_manager):
-    if not parallel_execution_enabled:
-        return None
-    return multiprocessing_manager
+    return multiprocessing_manager if parallel_execution_enabled else None
 
 
 @pytest.fixture
@@ -95,10 +93,7 @@ def make_counter(process_manager):
 @pytest.fixture
 def make_list(process_manager):
     def _make_list():
-        if process_manager is None:
-            return []
-        else:
-            return process_manager.list([])
+        return [] if process_manager is None else process_manager.list([])
 
     return _make_list
 
@@ -106,10 +101,7 @@ def make_list(process_manager):
 @pytest.fixture
 def make_dict(process_manager):
     def _make_dict():
-        if process_manager is None:
-            return {}
-        else:
-            return process_manager.dict()
+        return {} if process_manager is None else process_manager.dict()
 
     return _make_dict
 
@@ -203,7 +195,7 @@ def real_gcs_session_tmp_url_prefix(real_gcs_url_stem) -> Optional[str]:
     random_hex_str = "%016x" % random.randint(0, 2 ** 64)
     path_str = f"{getpass.getuser()}/BNTESTDATA/{random_hex_str}"
 
-    gs_url = real_gcs_url_stem + "/" + path_str + "/"
+    gs_url = f"{real_gcs_url_stem}/{path_str}/"
     assert not gcs_fs.exists(gs_url)
 
     yield gs_url
@@ -271,7 +263,7 @@ class LogChecker:
     def _format_message(record):
         message = record.getMessage()
         if record.exc_text:
-            message = message + " " + record.exc_text
+            message = f"{message} {record.exc_text}"
         return message
 
 

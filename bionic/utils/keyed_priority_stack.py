@@ -104,6 +104,8 @@ class PriorityEntry:
         return (self.priority, self.seq_id) > (other.priority, other.seq_id)
 
     def __eq__(self, other):
-        if not isinstance(other, PriorityEntry):
-            return False
-        return (self.priority, self.seq_id) == (other.priority, other.seq_id)
+        return (
+            (self.priority, self.seq_id) == (other.priority, other.seq_id)
+            if isinstance(other, PriorityEntry)
+            else False
+        )

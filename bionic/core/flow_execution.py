@@ -527,13 +527,12 @@ class TaskCompletionRunner:
         assert entry.stage in [EntryStage.ACTIVE, EntryStage.IN_PROGRESS]
 
         for req in entry.incoming_reqs:
-            if req.is_met:
-                if (
-                    req.src_entry is not None
-                    and req.src_entry.stage == EntryStage.BLOCKED
-                    and req.src_entry.all_outgoing_reqs_are_met
-                ):
-                    self._mark_entry_pending(req.src_entry)
+            if req.is_met and (
+                req.src_entry is not None
+                and req.src_entry.stage == EntryStage.BLOCKED
+                and req.src_entry.all_outgoing_reqs_are_met
+            ):
+                self._mark_entry_pending(req.src_entry)
         if not entry.all_incoming_reqs_are_met:
             return False
 
@@ -649,7 +648,7 @@ class TaskCompletionRunner:
                 if req.src_entry is not None
                 and req.src_entry.priority > EntryPriority.NORMAL
             ]
-        if len(remaining_reqs) > 0:
+        if remaining_reqs:
             return
 
         self._context.temp_result_cache.delete(entry.state.task_key)

@@ -31,7 +31,7 @@ def n_present(*items):
 
 
 def check_exactly_one_present(**kwargs):
-    if not n_present(list(kwargs.values())) == 1:
+    if n_present(list(kwargs.values())) != 1:
         args_str = ", ".join(f"{name}={value!r}" for name, value in kwargs.items())
         raise ValueError(
             oneline(
@@ -285,14 +285,18 @@ class ImmutableSequence:
         return self.__items.__hash__()
 
     def __eq__(self, seq):
-        if not isinstance(seq, ImmutableSequence):
-            return False
-        return self.__items.__eq__(seq.__items)
+        return (
+            self.__items.__eq__(seq.__items)
+            if isinstance(seq, ImmutableSequence)
+            else False
+        )
 
     def __ne__(self, seq):
-        if not isinstance(seq, ImmutableSequence):
-            return True
-        return self.__items.__ne__(seq.__items)
+        return (
+            self.__items.__ne__(seq.__items)
+            if isinstance(seq, ImmutableSequence)
+            else True
+        )
 
     def __lt__(self, seq):
         return self.__items.__lt__(seq.__items)
@@ -349,14 +353,18 @@ class ImmutableMapping(ImmutableSequence):
         return super(ImmutableMapping, self).__hash__()
 
     def __eq__(self, seq):
-        if not isinstance(seq, ImmutableMapping):
-            return False
-        return self.__values_by_key.__eq__(seq.__values_by_key)
+        return (
+            self.__values_by_key.__eq__(seq.__values_by_key)
+            if isinstance(seq, ImmutableMapping)
+            else False
+        )
 
     def __ne__(self, seq):
-        if not isinstance(seq, ImmutableMapping):
-            return True
-        return self.__values_by_key.__ne__(seq.__values_by_key)
+        return (
+            self.__values_by_key.__ne__(seq.__values_by_key)
+            if isinstance(seq, ImmutableMapping)
+            else True
+        )
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.__values_by_key!r})"

@@ -51,7 +51,7 @@ class CacheTester:
         assert set(self._get_entries()) == self._old_entries
 
     def expect_zero_entries(self):
-        assert list(self._get_entries()) == []
+        assert not list(self._get_entries())
 
     def _get_entries(self):
         return [
@@ -269,9 +269,9 @@ def test_delete_artifact_with_multiple_metadata_files(builder):
         c_entries.append(c_entry)
 
     # All the entries should have different metadata files.
-    assert len(set(entry.metadata_url for entry in c_entries)) == len(c_entries)
+    assert len({entry.metadata_url for entry in c_entries}) == len(c_entries)
     # But they should all share the same artifact file.
-    assert len(set(entry.artifact_url for entry in c_entries)) == 1
+    assert len({entry.artifact_url for entry in c_entries}) == 1
 
     # This deletes the artifact and returns True.
     assert c_entries[0].delete()

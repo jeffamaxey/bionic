@@ -82,10 +82,7 @@ class TaskRunnerEntry:
 
     @stage.setter
     def stage(self, stage):
-        if self._stage is None:
-            fmt_str = "Created %s as %s"
-        else:
-            fmt_str = "Updated %s to %s"
+        fmt_str = "Created %s as %s" if self._stage is None else "Updated %s to %s"
         logger.debug(fmt_str, self, stage.name)
         self._stage = stage
 
@@ -172,10 +169,10 @@ class TaskRunnerEntry:
                 local_artifact=None,
                 value_is_missing=True,
             )
-            value_hash = ""
             # TODO Should we do this even when memoization is disabled?
             state._result = result
             if state.should_persist:
+                value_hash = ""
                 state._result_value_hash = value_hash
             return result
 
@@ -222,10 +219,7 @@ class TaskRunnerEntry:
         assert self._is_cached
 
         result = self.context.temp_result_cache.load(self.state.task_key)
-        if result is not None:
-            return result
-
-        return self.state.get_cached_result(context)
+        return result if result is not None else self.state.get_cached_result(context)
 
     def __str__(self):
         return f"TaskRunnerEntry({self.state.task_key})"
@@ -759,7 +753,6 @@ class TaskState:
             url=url_from_path(value_path),
             content_hash=value_hash,
         )
-        return value_path
 
     def _generate_value_hash(self, value, value_path, context):
         protocol = self.desc_metadata.protocol
@@ -926,7 +919,7 @@ class RemoteSubgraph:
 
     @property
     def distinct_aip_task_configs(self):
-        return set(
+        return {
             state.func_attrs.aip_task_config
             for state in self.states_with_aip_task_configs
-        )
+        }

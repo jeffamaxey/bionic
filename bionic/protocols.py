@@ -203,29 +203,28 @@ class BaseProtocol:
     #        ...
     #
     def __call__(self, func=None, **kwargs):
-        if func is not None:
-            if len(kwargs) > 0:
-                raise ValueError(
-                    f"{self} can't be called with both a function and keywords"
-                )
-            if not callable(func):
-                raise ValueError(
-                    oneline(
-                        f"""
+        if func is None:
+            return self.__class__(**kwargs)
+        if kwargs:
+            raise ValueError(
+                f"{self} can't be called with both a function and keywords"
+            )
+        if not callable(func):
+            raise ValueError(
+                oneline(
+                    f"""
                     {self} must be used either (a) directly as a decorator or
                     (b) with keyword arguments;
                     it can't take positional arguments.
                     """
-                    )
                 )
+            )
 
-            return decorator_updating_accumulator(
-                lambda acc: acc.update_attr(
-                    "protocol", self, "protocol_decorator", raise_if_already_set=False
-                )
-            )(func)
-        else:
-            return self.__class__(**kwargs)
+        return decorator_updating_accumulator(
+            lambda acc: acc.update_attr(
+                "protocol", self, "protocol_decorator", raise_if_already_set=False
+            )
+        )(func)
 
     def __repr__(self):
         return f"{self.__class__.__name__}(...)"
@@ -374,10 +373,9 @@ class ParquetDataFrameProtocol(BaseProtocol):
             parquet.write_table(Table.from_pandas(df), file_)
 
     def _check_no_duplicate_cols(self, df):
-        duplicate_cols = {
+        if duplicate_cols := {
             elem: count for elem, count in Counter(df.columns).items() if count > 1
-        }
-        if duplicate_cols:
+        }:
             raise ValueError(
                 oneline(
                     f"""
@@ -391,11 +389,9 @@ class ParquetDataFrameProtocol(BaseProtocol):
             )
 
     def _check_no_categorical_cols(self, df):
-        categorical_cols = [
+        if categorical_cols := [
             col for col in df.columns if df[col].dtype.name == "category"
-        ]
-
-        if categorical_cols:
+        ]:
             raise ValueError(
                 oneline(
                     f"""
@@ -724,16 +720,24 @@ class CombinedProtocol(BaseProtocol):
         self._subprotocols = subprotocols
 
     def _protocol_for_value(self, value):
-        for protocol in self._subprotocols:
-            if protocol.value_is_valid(value):
-                return protocol
-        return None
+        return next(
+            (
+                protocol
+                for protocol in self._subprotocols
+                if protocol.value_is_valid(value)
+            ),
+            None,
+        )
 
     def _protocol_for_filename(self, filename):
-        for protocol in self._subprotocols:
-            if protocol.supports_filename(filename):
-                return protocol
-        return None
+        return next(
+            (
+                protocol
+                for protocol in self._subprotocols
+                if protocol.supports_filename(filename)
+            ),
+            None,
+        )
 
     def supports_filename(self, filename):
         return self._protocol_for_filename(filename) is not None
@@ -839,8 +843,7 @@ class GeoPandasProtocol(BaseProtocol):
         value.to_file(path)
 
     def _check_column_name_length_restriction(self, df):
-        long_columns = [c for c in df.columns if len(c) > 10]
-        if long_columns:
+        if long_columns := [c for c in df.columns if len(c) > 10]:
             raise ValueError(
                 oneline(
                     f"""
@@ -882,9 +885,9 @@ class TupleProtocol(BaseProtocol):
             instead, got non-sequence value {value!r}.
             """
             if self._expected_length == 1:
-                message += f"""
-                {"Did you mean to use @output instead of @outputs?"}
-                """
+                message += '
+                Did you mean to use @output instead of @outputs?
+                '
             raise AssertionError(oneline(message))
         if len(items) != self._expected_length:
             message = f"""

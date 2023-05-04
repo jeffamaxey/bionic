@@ -237,11 +237,7 @@ def test_conditionals():
     import math
 
     def y(op_type, val):
-        if op_type == "ceil":
-            func = math.ceil
-        else:
-            func = math.floor
-
+        func = math.ceil if op_type == "ceil" else math.floor
         return func(val)
 
     assert get_references(y) == [math.ceil, math.floor, math.floor]

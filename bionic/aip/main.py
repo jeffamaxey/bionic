@@ -61,11 +61,7 @@ def _set_up_logging(job_id, project_id):
         # do, it should be configured based on the cluster.
         labels=dict(job_id=job_id, project_id=project_id, task_name="master-replica-0"),
     )
-    labels = None
-    if trial_id is not None:
-        # Enable grouping by trial when present.
-        labels = {"ml.googleapis.com/trial_id": trial_id}
-
+    labels = None if trial_id is None else {"ml.googleapis.com/trial_id": trial_id}
     # Enable only the cloud logger to avoid duplicate messages.
     handler = glogging.handlers.handlers.CloudLoggingHandler(
         client, resource=resource, labels=labels

@@ -270,7 +270,7 @@ def test_wx__xy__z(preset_builder):
     @builder
     @bn.gather("wx", "xy")
     def summary(gather_df, z):
-        return summarize(gather_df) + " -- " + z
+        return f"{summarize(gather_df)} -- {z}"
 
     assert builder.build().get("summary", set) == {
         "WX.XY Wx.xY wX.XY wx.xY -- Z",
@@ -288,7 +288,7 @@ def test_wx__xy__z_with_unset_z(preset_builder):
     @builder
     @bn.gather("wx", "xy")
     def summary(gather_df, z):
-        return summarize(gather_df) + " -- " + z
+        return f"{summarize(gather_df)} -- {z}"
 
     assert builder.build().get("summary", set) == set()
 
@@ -299,7 +299,7 @@ def test_wx__xy__yz(preset_builder):
     @builder
     @bn.gather("wx", "xy")
     def summary(gather_df, yz):
-        return summarize(gather_df) + " -- " + yz
+        return f"{summarize(gather_df)} -- {yz}"
 
     assert builder.build().get("summary", set) == {
         "WX.XY Wx.xY wX.XY wx.xY -- YZ",
@@ -315,7 +315,7 @@ def test_xy__yz__wx(preset_builder):
     @builder
     @bn.gather("xy", "yz")
     def summary(gather_df, wx):
-        return summarize(gather_df) + " -- " + wx
+        return f"{summarize(gather_df)} -- {wx}"
 
     assert builder.build().get("summary", set) == {
         "XY.YZ Xy.yZ xY.YZ xy.yZ -- WX",
@@ -337,7 +337,7 @@ def test_xy__yz__wx__unset_x(preset_builder):
     @builder
     @bn.gather("xy", "yz")
     def summary(gather_df, wx):
-        return summarize(gather_df) + " -- " + wx
+        return f"{summarize(gather_df)} -- {wx}"
 
     assert builder.build().get("summary", list) == []
 
@@ -350,7 +350,7 @@ def test_xy__yz__wx__unset_y(preset_builder):
     @builder
     @bn.gather("xy", "yz")
     def summary(gather_df, wx):
-        return summarize(gather_df) + " -- " + wx
+        return f"{summarize(gather_df)} -- {wx}"
 
     assert builder.build().get("summary", set) == {
         " -- WX",
@@ -368,7 +368,7 @@ def test_xy__yz__wx__unset_z(preset_builder):
     @builder
     @bn.gather("xy", "yz")
     def summary(gather_df, wx):
-        return summarize(gather_df) + " -- " + wx
+        return f"{summarize(gather_df)} -- {wx}"
 
     assert builder.build().get("summary", list) == []
 
@@ -381,7 +381,7 @@ def test_xy__yz__wx__unset_w(preset_builder):
     @builder
     @bn.gather("xy", "yz")
     def summary(gather_df, wx):
-        return summarize(gather_df) + " -- " + wx
+        return f"{summarize(gather_df)} -- {wx}"
 
     assert builder.build().get("summary", list) == []
 
@@ -408,7 +408,7 @@ def test_multiple_gathers(preset_builder):
     @bn.gather("w", "wx", "df1")
     @bn.gather("y", "yz", "df2")
     def summary(df1, df2):
-        return summarize(df1) + " -- " + summarize(df2)
+        return f"{summarize(df1)} -- {summarize(df2)}"
 
     assert builder.build().get("summary", set) == {
         "W.WX w.wX -- Y.YZ y.yZ",
@@ -427,7 +427,7 @@ def test_multiple_gathers__unset_x(preset_builder):
     @bn.gather("w", "wx", "df1")
     @bn.gather("y", "yz", "df2")
     def summary(df1, df2):
-        return summarize(df1) + " -- " + summarize(df2)
+        return f"{summarize(df1)} -- {summarize(df2)}"
 
     assert builder.build().get("summary", list) == []
 
@@ -442,7 +442,7 @@ def test_multiple_gathers__unset_y(preset_builder):
     @bn.gather("w", "wx", "df1")
     @bn.gather("y", "yz", "df2")
     def summary(df1, df2):
-        return summarize(df1) + " -- " + summarize(df2)
+        return f"{summarize(df1)} -- {summarize(df2)}"
 
     assert builder.build().get("summary", set) == {
         "W.WX w.wX -- ",
@@ -461,7 +461,7 @@ def test_multiple_gathers__unset_z(preset_builder):
     @bn.gather("w", "wx", "df1")
     @bn.gather("y", "yz", "df2")
     def summary(df1, df2):
-        return summarize(df1) + " -- " + summarize(df2)
+        return f"{summarize(df1)} -- {summarize(df2)}"
 
     assert builder.build().get("summary", list) == []
 
@@ -475,7 +475,7 @@ def test_multiple_gathers__unset_w(preset_builder):
     @bn.gather("w", "wx", "df1")
     @bn.gather("y", "yz", "df2")
     def summary(df1, df2):
-        return summarize(df1) + " -- " + summarize(df2)
+        return f"{summarize(df1)} -- {summarize(df2)}"
 
     assert builder.build().get("summary", set) == {
         " -- Y.YZ y.yZ",
@@ -493,7 +493,7 @@ def test_multiple_gathers_complex(preset_builder):
     @bn.gather("w", "wx", "df1")
     @bn.gather("x", "wx", "df2")
     def summary(df1, df2):
-        return summarize(df1) + " -- " + summarize(df2)
+        return f"{summarize(df1)} -- {summarize(df2)}"
 
     assert builder.build().get("summary", set) == {
         "W.WX w.wX -- X.WX x.Wx",

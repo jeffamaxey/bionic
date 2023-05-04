@@ -91,11 +91,11 @@ class SimpleFlowModel:
             names = names & downstream_names
 
         if with_children is not None:
-            names_with_children = set(
+            names_with_children = {
                 name
                 for name in names
                 if len(self._entities_by_name[name].child_names) > 0
-            )
+            }
             if with_children:
                 names = names_with_children
             else:
@@ -126,8 +126,7 @@ class SimpleFlowModel:
         return names
 
     def peek_called_entity_names(self):
-        names = list(self._last_called_names)
-        return names
+        return list(self._last_called_names)
 
     def reset_called_entity_names(self):
         self._last_called_names[:] = []
@@ -224,14 +223,11 @@ class Fuzzer:
         self._versioning_mode = mode
 
     def add_entities(self, n_entities):
-        for i in range(n_entities):
+        for _ in range(n_entities):
             all_names = self.model.entity_names()
 
-            dep_names = []
             is_nondeterministic = self._random_bool_with_weighted_probability(0.05)
-            for name in all_names:
-                if self._random_bool():
-                    dep_names.append(name)
+            dep_names = [name for name in all_names if self._random_bool()]
             new_name = self.model.add_entity(dep_names, is_nondeterministic)
 
             self.model.get_flow().get(new_name)
@@ -244,7 +240,7 @@ class Fuzzer:
             )
 
     def run(self, n_iterations):
-        for i in range(n_iterations):
+        for _ in range(n_iterations):
             updated_name = self._random.choice(self.model.entity_names())
             affected_names = self.model.entity_names(
                 downstream_of=updated_name, with_children=False
@@ -326,13 +322,7 @@ class Fuzzer:
                         update_minor=make_nonfunc_change,
                     )
 
-                elif self._versioning_mode == "auto":
-                    # Even if we didn't update the version, Bionic should
-                    # do it for us and the flow should already be in a correct
-                    # state.
-                    pass
-
-                else:
+                elif self._versioning_mode != "auto":
                     raise AssertionError(
                         "Unexpected versioning mode: " f"{self._versioning_mode!r}"
                     )

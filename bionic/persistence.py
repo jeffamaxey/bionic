@@ -136,9 +136,7 @@ class CacheAccessor:
 
         try:
             entry = self._get_nearest_entry_with_artifact()
-            if entry is None:
-                return None
-            return entry.provenance
+            return None if entry is None else entry.provenance
         except InternalCacheStateError as e:
             self.raise_state_error_with_explanation(e)
 
@@ -150,11 +148,7 @@ class CacheAccessor:
         try:
             entry = self._get_nearest_entry_with_artifact()
 
-            if entry is None:
-                return None
-
-            return entry.artifact
-
+            return None if entry is None else entry.artifact
         except InternalCacheStateError as e:
             self.raise_state_error_with_explanation(e)
 
@@ -177,7 +171,7 @@ class CacheAccessor:
                 local_artifact = self._local_artifact_from_cloud(entry.artifact)
 
             else:
-                raise AssertionError("Unrecognized tier: " + entry.tier)
+                raise AssertionError(f"Unrecognized tier: {entry.tier}")
 
             self._save_or_reregister_artifact(local_artifact)
             return local_artifact
@@ -349,7 +343,7 @@ class CacheAccessor:
     def _cloud_artifact_from_local(self, local_artifact):
         url_prefix = self._cloud.generate_unique_url_prefix(self.provenance)
         file_path = path_from_url(local_artifact.url)
-        blob_url = url_prefix + "/" + file_path.name
+        blob_url = f"{url_prefix}/{file_path.name}"
 
         logger.info("Uploading %s to GCS ...", self.task_key)
         try:
@@ -495,7 +489,7 @@ class Inventory:
                 or there's a bug in the cache code
                 """
                 if n_prior_attempts == 1000000:
-                    raise AssertionError("Giving up: " + oneline(message))
+                    raise AssertionError(f"Giving up: {oneline(message)}")
                 else:
                     logger.warn(oneline(message))
             n_prior_attempts += 1
@@ -563,7 +557,7 @@ class Inventory:
         )
         possible_urls = self._fs.search(equivalent_url_prefix)
         equivalent_urls = [url for url in possible_urls if url.endswith(".yaml")]
-        if len(equivalent_urls) == 0:
+        if not equivalent_urls:
             return None
 
         exact_url = self._exact_metadata_url_for_provenance(provenance)
@@ -576,10 +570,9 @@ class Inventory:
         nominal_url_prefix = self._nominal_metadata_url_prefix_for_provenance(
             provenance
         )
-        nominal_urls = [
+        if nominal_urls := [
             url for url in equivalent_urls if url.startswith(nominal_url_prefix)
-        ]
-        if len(nominal_urls) > 0:
+        ]:
             return MetadataMatch(
                 metadata_url=nominal_urls[0],
                 level="nominal",
@@ -624,19 +617,17 @@ class Inventory:
         except Exception as e:
             raise InternalCacheStateError.from_failure("metadata record", url, e)
 
-        if not self._fs.exists(metadata_record.artifact.url):
-            logger.info(
-                "Found invalid metadata record at %s, "
-                "referring to nonexistent artifact at %s; "
-                "deleting metadata record",
-                url,
-                metadata_record.artifact.url,
-            )
-            self.delete_url(url)
-            return None
-
-        else:
+        if self._fs.exists(metadata_record.artifact.url):
             return metadata_record
+        logger.info(
+            "Found invalid metadata record at %s, "
+            "referring to nonexistent artifact at %s; "
+            "deleting metadata record",
+            url,
+            metadata_record.artifact.url,
+        )
+        self.delete_url(url)
+        return None
 
     def _create_and_write_metadata(self, provenance, artifact):
         metadata_url = self._exact_metadata_url_for_provenance(provenance)
@@ -682,16 +673,15 @@ class LocalStore:
 
             if not path.exists():
                 return path
-            else:
-                n_attempts += 1
-                if n_attempts > 3:
-                    raise AssertionError(
-                        oneline(
-                            f"""
+            n_attempts += 1
+            if n_attempts > 3:
+                raise AssertionError(
+                    oneline(
+                        f"""
                         Repeatedly failed to randomly generate a novel
                         directory name; {path} already exists"""
-                        )
                     )
+                )
 
 
 class GcsCloudStore:
@@ -705,7 +695,7 @@ class GcsCloudStore:
         self._fs = GcsFilesystem(gcs_fs, url, "/inventory")
 
         self.inventory = Inventory("GCS", "cloud", self._fs)
-        self._artifact_root_url_prefix = url + "/artifacts"
+        self._artifact_root_url_prefix = f"{url}/artifacts"
 
     def generate_unique_url_prefix(self, provenance):
         n_attempts = 0
@@ -722,17 +712,16 @@ class GcsCloudStore:
 
             if not self._fs.exists(url_prefix):
                 return url_prefix
-            else:
-                n_attempts += 1
-                if n_attempts > 3:
-                    raise AssertionError(
-                        oneline(
-                            f"""
+            n_attempts += 1
+            if n_attempts > 3:
+                raise AssertionError(
+                    oneline(
+                        f"""
                         Repeatedly failed to randomly generate a novel
                         blob name; {self._artifact_root_url_prefix}
                         already exists"""
-                        )
                     )
+                )
 
     def upload(self, path, url):
         if path.is_dir():
@@ -763,13 +752,14 @@ class LocalFilesystem:
 
     def search(self, url_prefix):
         path_prefix = path_from_url(url_prefix)
-        if not path_prefix.is_dir():
-            return []
-
-        return [
-            url_from_path(path_prefix / sub_path)
-            for sub_path in path_prefix.glob("**/*")
-        ]
+        return (
+            [
+                url_from_path(path_prefix / sub_path)
+                for sub_path in path_prefix.glob("**/*")
+            ]
+            if path_prefix.is_dir()
+            else []
+        )
 
     def rm(self, url):
         path = path_from_url(url)
@@ -817,8 +807,8 @@ class GcsFilesystem:
 
     def search(self, url_prefix):
         # This endpoint is a glob **/* search.
-        glob_url = url_prefix + "**/*"
-        return ["gs://" + url for url in self._fs.glob(glob_url)]
+        glob_url = f"{url_prefix}**/*"
+        return [f"gs://{url}" for url in self._fs.glob(glob_url)]
 
     def rm(self, url):
         self._validate_object_name_from_url(url)

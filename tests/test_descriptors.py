@@ -275,10 +275,7 @@ def test_all_entity_names(descriptor, expected_entity_names):
 )
 def test_edit_uppercase(descriptor, expected_edited_descriptor):
     def to_uppercase(dnode):
-        if dnode.is_entity():
-            return E(dnode.name.upper())
-        else:
-            return dnode
+        return E(dnode.name.upper()) if dnode.is_entity() else dnode
 
     assert (
         parse(descriptor).edit(to_uppercase).to_descriptor()
@@ -300,10 +297,7 @@ def test_edit_uppercase(descriptor, expected_edited_descriptor):
 )
 def test_edit_undraft(descriptor, expected_edited_descriptor):
     def undraft(dnode):
-        if dnode.is_draft():
-            return dnode.child
-        else:
-            return dnode
+        return dnode.child if dnode.is_draft() else dnode
 
     assert parse(descriptor).edit(undraft).to_descriptor() == expected_edited_descriptor
 

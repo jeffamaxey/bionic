@@ -64,10 +64,7 @@ class Cache:
 def path_from_url_if_file(url):
     """Converts a URL into a file path if it is a file URL; otherwise returns None."""
 
-    if is_file_url(url):
-        return path_from_url(url)
-    else:
-        return None
+    return path_from_url(url) if is_file_url(url) else None
 
 
 @total_ordering
@@ -153,7 +150,7 @@ class CacheEntry:
                 second_message = f"""
                 no artifact was deleted as the URL {self.artifact_url} no longer exists
                 """
-            full_message = first_message + " -- " + second_message
+            full_message = f"{first_message} -- {second_message}"
             raise CacheEntryDeletionError(oneline(full_message)) from e
 
         return artifact_was_deleted
@@ -162,14 +159,18 @@ class CacheEntry:
         return hash(self._comparison_key)
 
     def __eq__(self, other):
-        if not isinstance(other, CacheEntry):
-            return False
-        return self._comparison_key == other._comparison_key
+        return (
+            self._comparison_key == other._comparison_key
+            if isinstance(other, CacheEntry)
+            else False
+        )
 
     def __lt__(self, other):
-        if not isinstance(other, CacheEntry):
-            return TypeError(f"Can't compare {self!r} with non-CacheEntry {other!r}")
-        return self._comparison_key < other._comparison_key
+        return (
+            self._comparison_key < other._comparison_key
+            if isinstance(other, CacheEntry)
+            else TypeError(f"Can't compare {self!r} with non-CacheEntry {other!r}")
+        )
 
     def __repr__(self):
         return f"CacheEntry(metadata_url={self.metadata_url!r})"

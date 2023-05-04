@@ -564,7 +564,7 @@ def test_path_protocol(builder, make_counter, tmp_path, operation):
 
     def check_dir_contents(dir_path):
         file_paths = list(dir_path.iterdir())
-        assert set(path.name for path in file_paths) == set(colors)
+        assert {path.name for path in file_paths} == set(colors)
         for file_path in file_paths:
             assert file_path.read_text() == file_path.name
 
@@ -590,7 +590,7 @@ def test_path_protocol(builder, make_counter, tmp_path, operation):
 
     elif operation == "move":
         # Check that the original files have been removed.
-        assert list(working_dir_path.iterdir()) == []
+        assert not list(working_dir_path.iterdir())
 
 
 def test_combined_protocol(builder):

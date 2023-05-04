@@ -87,22 +87,15 @@ def import_optional_dependency(name, purpose=None, raise_on_missing=True):
     try:
         return importlib.import_module(name)
     except ImportError:
-        if raise_on_missing:
-            extra_name = extras_by_importable_name[name]
-
-            if purpose is None:
-                description = "required"
-            else:
-                description = "required for " + purpose
-
-            raise ImportError(
-                oneline(
-                    f"""
+        if not raise_on_missing:
+            return None
+        description = "required" if purpose is None else f"required for {purpose}"
+        extra_name = extras_by_importable_name[name]
+        raise ImportError(
+            oneline(
+                f"""
                 Unable to import package {name!r}, which is {description};
                 you can use ``pip install 'bionic[{extra_name}]'``
                 to resolve this"""
-                )
             )
-
-        else:
-            return None
+        )
